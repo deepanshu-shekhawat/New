@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<title>Peer2Skill | Code Visualizer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+
+<script>
+tailwind.config = {
+    darkMode: 'class',
+    theme: {
+        extend: {
+            fontFamily: { 
+                sans: ['Inter', 'sans-serif'],
+                mono: ['JetBrains Mono', 'monospace']
+            },
+            colors: {
+                brand: '#6366f1',
+                brandDark: '#4f46e5',
+            }
+        }
+    }
+}
+</script>
+
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #424242; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #4f4f4f; }
+
+.glass-panel {
+    background: rgba(31, 41, 55, 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.highlight-line {
+    background: rgba(99, 102, 241, 0.2) !important;
+    border-left: 3px solid #6366f1;
+}
+
+.variable-box {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border-radius: 12px;
+    padding: 12px 20px;
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    animation: slideIn 0.5s ease;
+    margin: 8px;
+    display: inline-block;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+@keyframes highlight {
+    0%, 100% { background: rgba(99, 102, 241, 0.2); }
+    50% { background: rgba(99, 102, 241, 0.5); }
+}
+
+.array-item {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 4px;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    transition: all 0.3s ease;
+}
+
+.array-item.active {
+    animation: pulse 1s infinite;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.6);
+}
+
+.array-item.comparing {
+    background: linear-gradient(135deg, #10b981, #059669);
+    animation: pulse 0.5s infinite;
+}
+
+.array-item.sorted {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.step-card {
+    background: rgba(31, 41, 55, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px 0;
+    color: #e5e7eb;
+    animation: slideIn 0.4s ease;
+}
+
+.step-number {
+    background: #6366f1;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    margin-right: 12px;
+}
+
+.control-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.algorithm-badge {
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    padding: 6px 16px;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+</style>
+</head>
+
+<body class="min-h-screen text-gray-100">
+
+<header class="h-16 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 flex items-center justify-between px-6 sticky top-0 z-50">
+    <div class="flex items-center gap-4">
+        <button onclick="window.location.href='index.html'" class="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <span class="h-5 w-[1px] bg-gray-700"></span>
+        <div class="flex items-center gap-2">
+            <i class="fas fa-play-circle text-brand text-xl"></i>
+            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                Code Visualizer
+            </h1>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <span class="algorithm-badge" id="algorithmBadge">No Algorithm Selected</span>
+    </div>
+</header>
+
+<div class="flex h-[calc(100vh-64px)]">
+    
+    <!-- Left Panel: Code Editor -->
+    <div class="w-1/2 flex flex-col border-r border-gray-800">
+        <div class="h-12 bg-gray-900/50 border-b border-gray-800 flex items-center justify-between px-4">
+            <span class="text-sm font-semibold text-gray-300">
+                <i class="fas fa-code mr-2 text-brand"></i>Your Code
+            </span>
+            <div class="flex gap-2">
+                <select id="templateSelect" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg text-sm border border-gray-700 focus:outline-none focus:border-brand">
+                    <option value="">Select Template</option>
+                    <option value="palindrome">Palindrome Checker</option>
+                    <option value="bubbleSort">Bubble Sort</option>
+                    <option value="binarySearch">Binary Search</option>
+                    <option value="factorial">Factorial</option>
+                    <option value="fibonacci">Fibonacci</option>
+                    <option value="reverseString">Reverse String</option>
+                    <option value="sumArray">Sum of Array</option>
+                </select>
+                <button onclick="runVisualization()" class="control-btn">
+                    <i class="fas fa-play mr-2"></i>Run & Visualize
+                </button>
+            </div>
+        </div>
+        <div id="codeEditor" class="flex-1"></div>
+    </div>
+
+    <!-- Right Panel: Visualization -->
+    <div class="w-1/2 flex flex-col bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden">
+        
+        <!-- Controls -->
+        <div class="h-12 bg-gray-900/50 border-b border-gray-800 flex items-center justify-between px-4">
+            <span class="text-sm font-semibold text-gray-300">
+                <i class="fas fa-film mr-2 text-brand"></i>Visualization
+            </span>
+            <div class="flex gap-2 items-center">
+                <span class="text-xs text-gray-400">Speed:</span>
+                <input type="range" id="speedControl" min="100" max="2000" value="1000" step="100" 
+                       class="w-24 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand">
+                <button onclick="stepBackward()" class="control-btn px-3 py-1.5 text-sm" disabled>
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button onclick="playPause()" id="playBtn" class="control-btn px-3 py-1.5 text-sm" disabled>
+                    <i class="fas fa-play"></i>
+                </button>
+                <button onclick="stepForward()" class="control-btn px-3 py-1.5 text-sm" disabled>
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <button onclick="resetVisualization()" class="control-btn px-3 py-1.5 text-sm" disabled>
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Visualization Area -->
+        <div class="flex-1 overflow-y-auto p-6">
+            
+            <!-- Variables Display -->
+            <div class="glass-panel rounded-xl p-4 mb-6" id="variablesPanel">
+                <h3 class="text-sm font-bold text-gray-300 mb-3 flex items-center">
+                    <i class="fas fa-database mr-2 text-blue-400"></i>Variables
+                </h3>
+                <div id="variablesDisplay" class="min-h-[80px] flex flex-wrap items-start">
+                    <p class="text-gray-500 text-sm">No variables to display yet...</p>
+                </div>
+            </div>
+
+            <!-- Visual Representation -->
+            <div class="glass-panel rounded-xl p-4 mb-6" id="visualPanel">
+                <h3 class="text-sm font-bold text-gray-300 mb-3 flex items-center">
+                    <i class="fas fa-eye mr-2 text-purple-400"></i>Visual Representation
+                </h3>
+                <div id="visualDisplay" class="min-h-[120px] flex items-center justify-center">
+                    <p class="text-gray-500 text-sm">Run your code to see the visualization...</p>
+                </div>
+            </div>
+
+            <!-- Execution Steps -->
+            <div class="glass-panel rounded-xl p-4" id="stepsPanel">
+                <h3 class="text-sm font-bold text-gray-300 mb-3 flex items-center">
+                    <i class="fas fa-list-ol mr-2 text-green-400"></i>Execution Steps
+                </h3>
+                <div id="stepsDisplay" class="max-h-[300px] overflow-y-auto">
+                    <p class="text-gray-500 text-sm">Steps will appear here...</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+let editor;
+let visualizationSteps = [];
+let currentStep = 0;
+let isPlaying = false;
+let playInterval;
+let speed = 1000;
+
+// Monaco Editor Setup
+require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs" } });
+
+require(["vs/editor/editor.main"], () => {
+    editor = monaco.editor.create(document.getElementById("codeEditor"), {
+        value: `// Select a template or write your own code
+// Click "Run & Visualize" to see the animation
+
+function palindrome(str) {
+    let left = 0;
+    let right = str.length - 1;
+    
+    while (left < right) {
+        if (str[left] !== str[right]) {
+            return false;
+        }
+        left++;
+        right--;
+    }
+    return true;
+}
+
+// Test the function
+const result = palindrome("racecar");
+console.log("Is palindrome:", result);`,
+        language: "javascript",
+        theme: "vs-dark",
+        automaticLayout: true,
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 14,
+        lineHeight: 22,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        padding: { top: 16, bottom: 16 },
+        renderLineHighlight: "all"
+    });
+});
+
+// Template Selection
+document.getElementById('templateSelect').addEventListener('change', (e) => {
+    const templates = {
+        palindrome: `function palindrome(str) {
+    let left = 0;
+    let right = str.length - 1;
+    
+    while (left < right) {
+        if (str[left] !== str[right]) {
+            return false;
+        }
+        left++;
+        right--;
+    }
+    return true;
+}
+
+const result = palindrome("racecar");
+console.log("Is palindrome:", result);`,
+
+        bubbleSort: `function bubbleSort(arr) {
+    const n = arr.length;
+    
+    for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                // Swap elements
+                let temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+    return arr;
+}
+
+const numbers = [64, 34, 25, 12, 22, 11, 90];
+const sorted = bubbleSort(numbers);
+console.log("Sorted:", sorted);`,
+
+        binarySearch: `function binarySearch(arr, target) {
+    let left = 0;
+    let right = arr.length - 1;
+    
+    while (left <= right) {
+        let mid = Math.floor((left + right) / 2);
+        
+        if (arr[mid] === target) {
+            return mid;
+        } else if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return -1;
+}
+
+const arr = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
+const index = binarySearch(arr, 23);
+console.log("Found at index:", index);`,
+
+        factorial: `function factorial(n) {
+    if (n === 0 || n === 1) {
+        return 1;
+    }
+    
+    let result = 1;
+    for (let i = 2; i <= n; i++) {
+        result = result * i;
+    }
+    return result;
+}
+
+const result = factorial(5);
+console.log("Factorial:", result);`,
+
+        fibonacci: `function fibonacci(n) {
+    if (n <= 1) return n;
+    
+    let prev = 0;
+    let curr = 1;
+    
+    for (let i = 2; i <= n; i++) {
+        let next = prev + curr;
+        prev = curr;
+        curr = next;
+    }
+    return curr;
+}
+
+const result = fibonacci(7);
+console.log("Fibonacci:", result);`,
+
+        reverseString: `function reverseString(str) {
+    let reversed = "";
+    
+    for (let i = str.length - 1; i >= 0; i--) {
+        reversed += str[i];
+    }
+    return reversed;
+}
+
+const result = reverseString("SkillXchange");
+console.log("Reversed:", result);`,
+
+        sumArray: `function sumArray(arr) {
+    let sum = 0;
+    
+    for (let i = 0; i < arr.length; i++) {
+        sum += arr[i];
+    }
+    return sum;
+}
+
+const numbers = [10, 20, 30, 40, 50];
+const total = sumArray(numbers);
+console.log("Sum:", total);`
+    };
+
+    if (e.target.value && templates[e.target.value]) {
+        editor.setValue(templates[e.target.value]);
+        document.getElementById('algorithmBadge').textContent = e.target.value.replace(/([A-Z])/g, ' $1').trim();
+    }
+});
+
+// Speed Control
+document.getElementById('speedControl').addEventListener('input', (e) => {
+    speed = 2100 - parseInt(e.target.value); // Inverse for intuitive control
+});
+
+// Run Visualization
+function runVisualization() {
+    const code = editor.getValue();
+    
+    // Clear previous visualization
+    visualizationSteps = [];
+    currentStep = 0;
+    
+    // Analyze and create visualization steps
+    analyzeCode(code);
+    
+    if (visualizationSteps.length > 0) {
+        enableControls();
+        renderStep(0);
+    } else {
+        alert('Could not visualize this code. Try using one of the templates.');
+    }
+}
+
+function analyzeCode(code) {
+    // This is a simplified visualization generator
+    // In a real implementation, you would parse the AST and trace execution
+    
+    // Detect algorithm type and generate appropriate steps
+    if (code.includes('palindrome')) {
+        generatePalindromeVisualization(code);
+    } else if (code.includes('bubbleSort')) {
+        generateBubbleSortVisualization(code);
+    } else if (code.includes('binarySearch')) {
+        generateBinarySearchVisualization(code);
+    } else if (code.includes('factorial')) {
+        generateFactorialVisualization(code);
+    } else if (code.includes('fibonacci')) {
+        generateFibonacciVisualization(code);
+    } else if (code.includes('reverseString')) {
+        generateReverseStringVisualization(code);
+    } else if (code.includes('sumArray')) {
+        generateSumArrayVisualization(code);
+    } else {
+        // Generic execution visualization
+        generateGenericVisualization(code);
+    }
+}
+
+function generatePalindromeVisualization(code) {
+    const match = code.match(/palindrome\s*\(\s*["']([^"']+)["']\s*\)/);
+    const str = match ? match[1] : "racecar";
+    
+    let left = 0;
+    let right = str.length - 1;
+    let stepNum = 1;
+    
+    visualizationSteps.push({
+        line: 1,
+        description: `Starting palindrome check for "${str}"`,
+        variables: { str, left, right },
+        visual: createStringVisualization(str, [], 'initial')
+    });
+    
+    while (left < right) {
+        visualizationSteps.push({
+            line: 5,
+            description: `Comparing characters at positions ${left} and ${right}: '${str[left]}' vs '${str[right]}'`,
+            variables: { str, left, right },
+            visual: createStringVisualization(str, [left, right], 'comparing')
+        });
+        
+        if (str[left] !== str[right]) {
+            visualizationSteps.push({
+                line: 6,
+                description: `Characters don't match! Not a palindrome.`,
+                variables: { str, left, right, result: false },
+                visual: createStringVisualization(str, [left, right], 'mismatch')
+            });
+            break;
+        }
+        
+        visualizationSteps.push({
+            line: 9,
+            description: `Characters match! Moving to next pair.`,
+            variables: { str, left, right },
+            visual: createStringVisualization(str, [left, right], 'match')
+        });
+        
+        left++;
+        right--;
+    }
+    
+    if (left >= right) {
+        visualizationSteps.push({
+            line: 12,
+            description: `All characters matched! "${str}" is a palindrome ✓`,
+            variables: { str, result: true },
+            visual: createStringVisualization(str, [], 'success')
+        });
+    }
+}
+
+function generateBubbleSortVisualization(code) {
+    const match = code.match(/\[([0-9,\s]+)\]/);
+    const arr = match ? match[1].split(',').map(n => parseInt(n.trim())) : [64, 34, 25, 12, 22, 11, 90];
+    const original = [...arr];
+    
+    visualizationSteps.push({
+        line: 1,
+        description: `Starting Bubble Sort on array`,
+        variables: { array: original.join(', ') },
+        visual: createArrayVisualization(arr, [])
+    });
+    
+    const n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            visualizationSteps.push({
+                line: 4,
+                description: `Comparing arr[${j}]=${arr[j]} and arr[${j+1}]=${arr[j+1]}`,
+                variables: { i, j, comparing: `${arr[j]} vs ${arr[j+1]}` },
+                visual: createArrayVisualization(arr, [j, j+1], 'comparing')
+            });
+            
+            if (arr[j] > arr[j + 1]) {
+                const temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+                
+                visualizationSteps.push({
+                    line: 7,
+                    description: `Swapped ${temp} and ${arr[j]} because ${temp} > ${arr[j]}`,
+                    variables: { i, j, swapped: true },
+                    visual: createArrayVisualization(arr, [j, j+1], 'swapped')
+                });
+            }
+        }
+    }
+    
+    visualizationSteps.push({
+        line: 12,
+        description: `Sorting complete! Array is now sorted ✓`,
+        variables: { result: arr.join(', ') },
+        visual: createArrayVisualization(arr, [], 'sorted')
+    });
+}
+
+function generateBinarySearchVisualization(code) {
+    const arrMatch = code.match(/\[([0-9,\s]+)\]/);
+    const targetMatch = code.match(/binarySearch\s*\([^,]+,\s*(\d+)\s*\)/);
+    
+    const arr = arrMatch ? arrMatch[1].split(',').map(n => parseInt(n.trim())) : [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
+    const target = targetMatch ? parseInt(targetMatch[1]) : 23;
+    
+    let left = 0;
+    let right = arr.length - 1;
+    
+    visualizationSteps.push({
+        line: 1,
+        description: `Binary search for ${target} in sorted array`,
+        variables: { target, left, right },
+        visual: createArrayVisualization(arr, [], 'initial')
+    });
+    
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        
+        visualizationSteps.push({
+            line: 6,
+            description: `Checking middle element: arr[${mid}] = ${arr[mid]}`,
+            variables: { target, left, mid, right },
+            visual: createArrayVisualization(arr, [mid], 'checking')
+        });
+        
+        if (arr[mid] === target) {
+            visualizationSteps.push({
+                line: 8,
+                description: `Found ${target} at index ${mid}! ✓`,
+                variables: { target, result: mid },
+                visual: createArrayVisualization(arr, [mid], 'found')
+            });
+            break;
+        } else if (arr[mid] < target) {
+            visualizationSteps.push({
+                line: 10,
+                description: `${arr[mid]} < ${target}, searching right half`,
+                variables: { target, left: mid + 1, right },
+                visual: createArrayVisualization(arr, [mid], 'eliminating-left')
+            });
+            left = mid + 1;
+        } else {
+            visualizationSteps.push({
+                line: 12,
+                description: `${arr[mid]} > ${target}, searching left half`,
+                variables: { target, left, right: mid - 1 },
+                visual: createArrayVisualization(arr, [mid], 'eliminating-right')
+            });
+            right = mid - 1;
+        }
+    }
+    
+    if (left > right) {
+        visualizationSteps.push({
+            line: 15,
+            description: `${target} not found in array`,
+            variables: { result: -1 },
+            visual: createArrayVisualization(arr, [], 'not-found')
+        });
+    }
+}
+
+function generateFactorialVisualization(code) {
+    const match = code.match(/factorial\s*\(\s*(\d+)\s*\)/);
+    const n = match ? parseInt(match[1]) : 5;
+    
+    visualizationSteps.push({
+        line: 1,
+        description: `Computing factorial of ${n}`,
+        variables: { n, result: 1 },
+        visual: `<div class="text-center text-4xl font-bold text-blue-400">${n}!</div>`
+    });
+    
+    let result = 1;
+    for (let i = 2; i <= n; i++) {
+        const oldResult = result;
+        result = result * i;
+        
+        visualizationSteps.push({
+            line: 6,
+            description: `Multiplying: ${oldResult} × ${i} = ${result}`,
+            variables: { n, i, result },
+            visual: `<div class="text-center">
+                <div class="text-3xl font-mono text-blue-400">${oldResult} × ${i} = ${result}</div>
+                <div class="text-sm text-gray-400 mt-2">Step ${i-1} of ${n-1}</div>
+            </div>`
+        });
+    }
+    
+    visualizationSteps.push({
+        line: 9,
+        description: `Factorial computed: ${n}! = ${result} ✓`,
+        variables: { result },
+        visual: `<div class="text-center text-5xl font-bold text-green-400">${result}</div>`
+    });
+}
+
+function generateFibonacciVisualization(code) {
+    const match = code.match(/fibonacci\s*\(\s*(\d+)\s*\)/);
+    const n = match ? parseInt(match[1]) : 7;
+    
+    let sequence = [0, 1];
+    
+    visualizationSteps.push({
+        line: 1,
+        description: `Computing Fibonacci(${n})`,
+        variables: { n, prev: 0, curr: 1 },
+        visual: createFibonacciVisualization([0, 1])
+    });
+    
+    for (let i = 2; i <= n; i++) {
+        const next = sequence[i-1] + sequence[i-2];
+        sequence.push(next);
+        
+        visualizationSteps.push({
+            line: 6,
+            description: `F(${i}) = F(${i-1}) + F(${i-2}) = ${sequence[i-1]} + ${sequence[i-2]} = ${next}`,
+            variables: { i, prev: sequence[i-2], curr: sequence[i-1], next },
+            visual: createFibonacciVisualization(sequence)
+        });
+    }
+    
+    visualizationSteps.push({
+        line: 10,
+        description: `Fibonacci(${n}) = ${sequence[n]} ✓`,
+        variables: { result: sequence[n] },
+        visual: createFibonacciVisualization(sequence, n)
+    });
+}
+
+function generateReverseStringVisualization(code) {
+    const match = code.match(/reverseString\s*\(\s*["']([^"']+)["']\s*\)/);
+    const str = match ? match[1] : "SkillXchange";
+    
+    let reversed = "";
+    
+    visualizationSteps.push({
+        line: 1,
+        description: `Reversing string: "${str}"`,
+        variables: { str, reversed: "" },
+        visual: createReverseStringVisualization(str, "")
+    });
+    
+    for (let i = str.length - 1; i >= 0; i--) {
+        reversed += str[i];
+        
+        visualizationSteps.push({
+            line: 4,
+            description: `Adding character '${str[i]}' from position ${i}`,
+            variables: { i, char: str[i], reversed },
+            visual: createReverseStringVisualization(str, reversed, i)
+        });
+    }
+    
+    visualizationSteps.push({
+        line: 7,
+        description: `String reversed: "${reversed}" ✓`,
+        variables: { result: reversed },
+        visual: createReverseStringVisualization(str, reversed, -1)
+    });
+}
+
+function generateSumArrayVisualization(code) {
+    const match = code.match(/\[([0-9,\s]+)\]/);
+    const arr = match ? match[1].split(',').map(n => parseInt(n.trim())) : [10, 20, 30, 40, 50];
+    
+    let sum = 0;
+    
+    visualizationSteps.push({
+        line: 1,
+        description: `Computing sum of array`,
+        variables: { array: arr.join(', '), sum: 0 },
+        visual: createSumArrayVisualization(arr, 0, -1)
+    });
+    
+    for (let i = 0; i < arr.length; i++) {
+        const oldSum = sum;
+        sum += arr[i];
+        
+        visualizationSteps.push({
+            line: 4,
+            description: `Adding arr[${i}] = ${arr[i]}: ${oldSum} + ${arr[i]} = ${sum}`,
+            variables: { i, sum },
+            visual: createSumArrayVisualization(arr, sum, i)
+        });
+    }
+    
+    visualizationSteps.push({
+        line: 7,
+        description: `Total sum: ${sum} ✓`,
+        variables: { result: sum },
+        visual: createSumArrayVisualization(arr, sum, -2)
+    });
+}
+
+function generateGenericVisualization(code) {
+    visualizationSteps.push({
+        line: 1,
+        description: "Code execution started",
+        variables: { status: "running" },
+        visual: `<div class="text-center text-gray-400">Generic visualization for custom code</div>`
+    });
+}
+
+// Visualization Creators
+function createStringVisualization(str, highlights, state) {
+    const colors = {
+        initial: 'bg-gray-700',
+        comparing: 'bg-yellow-500',
+        match: 'bg-green-500',
+        mismatch: 'bg-red-500',
+        success: 'bg-green-500'
+    };
+    
+    let html = '<div class="flex gap-2 justify-center flex-wrap">';
+    for (let i = 0; i < str.length; i++) {
+        const isHighlighted = highlights.includes(i);
+        const bgColor = isHighlighted ? (colors[state] || colors.initial) : colors.initial;
+        const animation = isHighlighted ? 'pulse 1s infinite' : 'none';
+        
+        html += `<div style="animation: ${animation}" class="w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg">
+            ${str[i]}
+        </div>`;
+    }
+    html += '</div>';
+    return html;
+}
+
+function createArrayVisualization(arr, highlights, state = 'normal') {
+    let html = '<div class="flex gap-2 justify-center flex-wrap">';
+    for (let i = 0; i < arr.length; i++) {
+        const isHighlighted = highlights.includes(i);
+        const className = isHighlighted ? `array-item ${state === 'found' ? 'sorted' : 'active'}` : 'array-item';
+        
+        html += `<div class="${className}">${arr[i]}</div>`;
+    }
+    html += '</div>';
+    return html;
+}
+
+function createFibonacciVisualization(sequence, highlight = -1) {
+    let html = '<div class="flex gap-2 justify-center flex-wrap">';
+    sequence.forEach((num, i) => {
+        const className = i === highlight ? 'array-item sorted' : 'array-item';
+        html += `<div class="${className}">${num}</div>`;
+    });
+    html += '</div>';
+    return html;
+}
+
+function createReverseStringVisualization(original, reversed, currentIndex) {
+    return `
+        <div class="space-y-6">
+            <div class="text-center">
+                <div class="text-sm text-gray-400 mb-2">Original</div>
+                <div class="flex gap-2 justify-center">
+                    ${original.split('').map((char, i) => `
+                        <div class="w-10 h-10 ${i === currentIndex ? 'bg-yellow-500 pulse' : 'bg-blue-600'} rounded flex items-center justify-center text-white font-bold shadow-lg">
+                            ${char}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="text-center text-2xl text-gray-400">↓</div>
+            <div class="text-center">
+                <div class="text-sm text-gray-400 mb-2">Reversed</div>
+                <div class="flex gap-2 justify-center">
+                    ${reversed.split('').map(char => `
+                        <div class="w-10 h-10 bg-green-600 rounded flex items-center justify-center text-white font-bold shadow-lg">
+                            ${char}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function createSumArrayVisualization(arr, currentSum, activeIndex) {
+    return `
+        <div class="space-y-6">
+            <div class="flex gap-2 justify-center flex-wrap">
+                ${arr.map((num, i) => `
+                    <div class="array-item ${i === activeIndex ? 'active' : (i < activeIndex ? 'sorted' : '')}">
+                        ${num}
+                    </div>
+                `).join('')}
+            </div>
+            <div class="text-center">
+                <div class="text-sm text-gray-400 mb-2">Current Sum</div>
+                <div class="text-5xl font-bold text-blue-400">${currentSum}</div>
+            </div>
+        </div>
+    `;
+}
+
+// Render Step
+function renderStep(step) {
+    if (step < 0 || step >= visualizationSteps.length) return;
+    
+    currentStep = step;
+    const data = visualizationSteps[step];
+    
+    // Update variables
+    const varsHtml = Object.entries(data.variables)
+        .map(([key, val]) => `<div class="variable-box">
+            <span class="text-blue-200 font-semibold">${key}:</span> 
+            <span class="text-white">${typeof val === 'object' ? JSON.stringify(val) : val}</span>
+        </div>`)
+        .join('');
+    document.getElementById('variablesDisplay').innerHTML = varsHtml || '<p class="text-gray-500">No variables</p>';
+    
+    // Update visual
+    document.getElementById('visualDisplay').innerHTML = data.visual;
+    
+    // Update steps
+    const stepsHtml = visualizationSteps.map((s, i) => {
+        const isActive = i === step;
+        return `<div class="step-card ${isActive ? 'border-brand' : ''}">
+            <span class="step-number">${i + 1}</span>
+            <span class="${isActive ? 'text-white font-semibold' : 'text-gray-400'}">${s.description}</span>
+        </div>`;
+    }).join('');
+    document.getElementById('stepsDisplay').innerHTML = stepsHtml;
+    
+    // Scroll active step into view
+    setTimeout(() => {
+        const activeStep = document.querySelector('.step-card.border-brand');
+        if (activeStep) activeStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+}
+
+// Controls
+function playPause() {
+    if (isPlaying) {
+        clearInterval(playInterval);
+        isPlaying = false;
+        document.querySelector('#playBtn i').className = 'fas fa-play';
+    } else {
+        isPlaying = true;
+        document.querySelector('#playBtn i').className = 'fas fa-pause';
+        
+        playInterval = setInterval(() => {
+            if (currentStep < visualizationSteps.length - 1) {
+                stepForward();
+            } else {
+                playPause();
+            }
+        }, speed);
+    }
+}
+
+function stepForward() {
+    if (currentStep < visualizationSteps.length - 1) {
+        renderStep(currentStep + 1);
+    }
+}
+
+function stepBackward() {
+    if (currentStep > 0) {
+        renderStep(currentStep - 1);
+    }
+}
+
+function resetVisualization() {
+    if (isPlaying) playPause();
+    renderStep(0);
+}
+
+function enableControls() {
+    document.querySelectorAll('.control-btn').forEach(btn => btn.disabled = false);
+}
+</script>
+
+</body>
+</html>

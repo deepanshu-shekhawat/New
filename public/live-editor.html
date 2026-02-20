@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:#0b0f14;color:#e5e7eb}
+.app{display:flex;flex-direction:column;height:100%}
+.header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid #1f2937;background:rgba(255,255,255,0.04);backdrop-filter:blur(10px)}
+.brand{font-weight:700;font-size:20px;background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+.status{padding:6px 10px;border-radius:999px;border:1px solid #334155;background:rgba(255,255,255,0.05);font-size:12px;color:#94a3b8}
+.main{flex:1;display:flex;overflow:hidden}
+.sidebar{width:260px;min-width:180px;max-width:600px;background:#0f1620;border-right:1px solid #1f2937;display:flex;flex-direction:column}
+.sidebar-header{padding:16px;border-bottom:1px solid #1f2937;color:#94a3b8;letter-spacing:.08em;font-size:12px;font-weight:600;text-transform:uppercase}
+.sidebar-actions{display:flex;flex-direction:column;gap:8px;padding:12px 16px;border-bottom:1px solid #1f2937}
+.btn{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;background:transparent;color:#94a3b8;border:1px solid transparent;text-decoration:none;font-size:14px;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,0.05);color:#e5e7eb;border-color:#1f2937}
+.filelist{flex:1;overflow:auto;padding:8px}
+.file-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:13px;color:#94a3b8;cursor:pointer;border-left:2px solid transparent}
+.file-item:hover{background:rgba(255,255,255,0.05);color:#e5e7eb}
+.file-item.active{background:rgba(99,102,241,0.12);color:#93c5fd;border-left-color:#60a5fa}
+.resizer{width:4px;cursor:col-resize;background:#172333}
+.editor-pane{width:50%;min-width:220px;max-width:80%;display:flex;flex-direction:column;border-right:1px solid #1f2937;background:#0f1620}
+.tabbar{height:40px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid #1f2937;color:#94a3b8;font-size:13px}
+.tab-active{color:#60a5fa;border-bottom:2px solid #60a5fa;height:100%;display:flex;align-items:center;padding:0 8px}
+.editor{flex:1;min-height:0}
+.preview-pane{flex:1;display:flex;flex-direction:column;background:#fff}
+.preview-header{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid #d1d5db;color:#374151;font-size:13px;background:#f3f4f6}
+.preview-iframe{flex:1;border:0;width:100%}
+.inputs{display:none}
+.pill{display:flex;align-items:center;gap:6px}
+.pill-dot{width:8px;height:8px;border-radius:50%;background:#10b981}
+.icon{width:14px;height:14px;display:inline-block}
+.icon-file{background:#60a5fa;border-radius:2px}
+.icon-css{background:#3b82f6;border-radius:2px}
+.icon-js{background:#f59e0b;border-radius:2px}
+.action-refresh{padding:6px;border-radius:6px;color:#6b7280;cursor:pointer}
+.action-refresh:hover{background:#e5e7eb;color:#111827}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="brand">Live Studio</div>
+      <button onclick="window.location.href='index.html'" class="btn" id="btnBackHome"><span style="font-size:14px">←</span>&nbsp;Back to Home</button>
+    </div>
+    <div class="status">OFFLINE</div>
+  </div>
+  <div class="main">
+    <div id="sidebar" class="sidebar">
+      <div class="sidebar-header">Explorer</div>
+      <div class="sidebar-actions">
+        <button id="btnOpenFile" class="btn"><span class="icon icon-file"></span><span>Open File</span></button>
+        <button id="btnOpenFolder" class="btn"><span class="icon icon-file"></span><span>Open Folder</span></button>
+        <button id="btnOpenZip" class="btn"><span class="icon icon-file"></span><span>Import Zip</span></button>
+      </div>
+      <div id="filelist" class="filelist"></div>
+    </div>
+    <div id="resizerSidebar" class="resizer"></div>
+    <div class="editor-pane" id="editorPane">
+      <div class="tabbar">
+        <div class="tab-active" id="activeFilename">index.html</div>
+      </div>
+      <div id="editor" class="editor"></div>
+    </div>
+    <div id="resizerEditor" class="resizer"></div>
+    <div class="preview-pane">
+      <div class="preview-header">
+        <div class="pill"><span class="icon icon-file"></span><span>Live Preview</span></div>
+        <div class="pill">
+          <div id="btnRefresh" class="action-refresh">↻</div>
+          <div class="pill-dot"></div>
+          <div>Auto-updating</div>
+        </div>
+      </div>
+      <iframe id="preview" class="preview-iframe" sandbox="allow-scripts"></iframe>
+    </div>
+  </div>
+  <div class="inputs">
+    <input type="file" id="inputFile">
+    <input type="file" id="inputFolder" webkitdirectory directory>
+    <input type="file" id="inputZip" accept=".zip">
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
+<script>
+var files={
+  "index.html":{
+    content:"<div class=\"container\"><div class=\"pulse\"></div><h1>Live Preview</h1><p>Animations work automatically</p></div><script src=\"script.js\"><\/script><link rel=\"stylesheet\" href=\"style.css\">",
+    language:"html"
+  },
+  "style.css":{
+    content:"body{font-family:Inter,system-ui,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f8fafc}.container{text-align:center;padding:2rem;background:#fff;border-radius:1rem;box-shadow:0 4px 10px rgba(0,0,0,.08)}.pulse{width:50px;height:50px;background:#3b82f6;border-radius:50%;margin:0 auto 1rem;animation:pulse 2s infinite}@keyframes pulse{0%{transform:scale(.95);box-shadow:0 0 0 0 rgba(59,130,246,.7)}70%{transform:scale(1);box-shadow:0 0 0 20px rgba(59,130,246,0)}100%{transform:scale(.95);box-shadow:0 0 0 0 rgba(59,130,246,0)}}h1{color:#1e293b;margin:0}p{color:#64748b}",
+    language:"css"
+  },
+  "script.js":{
+    content:"console.log('Hello from script.js')",
+    language:"javascript"
+  }
+};
+var activeFile="index.html";
+var sidebar=document.getElementById("sidebar");
+var editorPane=document.getElementById("editorPane");
+var editorEl=document.getElementById("editor");
+var filelistEl=document.getElementById("filelist");
+var activeFilenameEl=document.getElementById("activeFilename");
+var inputFile=document.getElementById("inputFile");
+var inputFolder=document.getElementById("inputFolder");
+var inputZip=document.getElementById("inputZip");
+var btnOpenFile=document.getElementById("btnOpenFile");
+var btnOpenFolder=document.getElementById("btnOpenFolder");
+var btnOpenZip=document.getElementById("btnOpenZip");
+var btnRefresh=document.getElementById("btnRefresh");
+var preview=document.getElementById("preview");
+var resizerSidebar=document.getElementById("resizerSidebar");
+var resizerEditor=document.getElementById("resizerEditor");
+var isResizingSidebar=false;
+var isResizingEditor=false;
+var editor;
+function renderFileList(){
+  filelistEl.innerHTML="";
+  Object.keys(files).forEach(function(name){
+    var item=document.createElement("div");
+    item.className="file-item"+(name===activeFile?" active":"");
+    var icon=document.createElement("span");
+    icon.className="icon "+(name.endsWith(".css")?"icon-css":name.endsWith(".js")?"icon-js":"icon-file");
+    var text=document.createElement("span");
+    text.textContent=name;
+    item.appendChild(icon);
+    item.appendChild(text);
+    item.onclick=function(){setActiveFile(name)};
+    filelistEl.appendChild(item);
+  });
+}
+function setActiveFile(name){
+  activeFile=name;
+  activeFilenameEl.textContent=name;
+  renderFileList();
+  if(editor){editor.setValue(files[activeFile].content);monaco.editor.setModelLanguage(editor.getModel(),files[activeFile].language)}
+}
+function generatePreview(){
+  var html=files["index.html"]&&files["index.html"].content?files["index.html"].content:"";
+  Object.keys(files).forEach(function(fn){
+    if(fn.endsWith(".css")){
+      var css=files[fn].content;
+      var re=new RegExp("<link[^>]+href=[\"']"+fn+"[\"'][^>]*>","g");
+      if(re.test(html)){html=html.replace(re,"<style>"+css+"</style>")}else if(fn==="style.css"&&!html.includes("style.css")){html+="<style>"+css+"</style>"}
+    }
+  });
+  Object.keys(files).forEach(function(fn){
+    if(fn.endsWith(".js")){
+      var js=files[fn].content;
+      var re=new RegExp("<script[^>]+src=[\"']"+fn+"[\"'][^>]*><\\/script>","g");
+      if(re.test(html)){html=html.replace(re,"<script>"+js+"<\/script>")}
+    }
+  });
+  preview.srcdoc=html;
+}
+btnRefresh.onclick=function(){preview.srcdoc=preview.srcdoc};
+btnOpenFile.onclick=function(){inputFile.click()};
+btnOpenFolder.onclick=function(){inputFolder.click()};
+btnOpenZip.onclick=function(){inputZip.click()};
+inputFile.onchange=function(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    files[file.name]={content:ev.target.result,language:getLang(file.name)};
+    setActiveFile(file.name);
+    generatePreview();
+  };
+  reader.readAsText(file);
+};
+inputFolder.onchange=function(e){
+  var list=e.target.files;
+  Array.from(list).forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      files[file.name]={content:ev.target.result,language:getLang(file.name)};
+      renderFileList();
+      generatePreview();
+    };
+    reader.readAsText(file);
+  });
+};
+inputZip.onchange=function(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  JSZip.loadAsync(file).then(function(zip){
+    var promises=[];
+    var newFiles={};
+    zip.forEach(function(path,entry){
+      if(!entry.dir){
+        promises.push(entry.async("string").then(function(content){
+          var name=path.split("/").pop();
+          newFiles[name]={content:content,language:getLang(name)};
+        }));
+      }
+    });
+    Promise.all(promises).then(function(){
+      Object.keys(newFiles).forEach(function(k){files[k]=newFiles[k]});
+      renderFileList();
+      if(newFiles["index.html"])setActiveFile("index.html");
+      generatePreview();
+    }).catch(function(){alert("Failed to read zip")});
+  }).catch(function(){alert("Failed to read zip")});
+};
+function getLang(name){
+  if(name.endsWith(".html"))return"html";
+  if(name.endsWith(".css"))return"css";
+  if(name.endsWith(".js"))return"javascript";
+  if(name.endsWith(".json"))return"json";
+  return"plaintext";
+}
+var startXSidebar=0;
+resizerSidebar.onmousedown=function(e){isResizingSidebar=true;startXSidebar=e.clientX;document.body.style.cursor="col-resize";document.body.style.userSelect="none"};
+var startXEditor=0;
+resizerEditor.onmousedown=function(e){isResizingEditor=true;startXEditor=e.clientX;document.body.style.cursor="col-resize";document.body.style.userSelect="none"};
+window.onmousemove=function(e){
+  if(isResizingSidebar){
+    var dx=e.clientX-startXSidebar;
+    startXSidebar=e.clientX;
+    var w=sidebar.offsetWidth+dx;
+    if(w>180&&w<600)sidebar.style.width=w+"px";
+  }
+  if(isResizingEditor){
+    var dx=e.clientX-startXEditor;
+    startXEditor=e.clientX;
+    var total=editorPane.parentElement.offsetWidth-sidebar.offsetWidth-8;
+    var w=editorPane.offsetWidth+dx;
+    var pct=Math.max(10,Math.min(90,(w/total)*100));
+    editorPane.style.width=pct+"%";
+    if(editor)editor.layout();
+  }
+};
+window.onmouseup=function(){isResizingSidebar=false;isResizingEditor=false;document.body.style.cursor="default";document.body.style.userSelect="auto"};
+require.config({paths:{vs:"https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs"}});
+require(["vs/editor/editor.main"],function(){
+  editor=monaco.editor.create(editorEl,{value:files[activeFile].content,language:files[activeFile].language,theme:"vs-dark",minimap:{enabled:false},fontSize:16,wordWrap:"on",automaticLayout:true,formatOnType:true,formatOnPaste:true,padding:{top:16}});
+  editor.onDidChangeModelContent(function(){
+    files[activeFile].content=editor.getValue();
+    generatePreview();
+  });
+  renderFileList();
+  generatePreview();
+});
+</script>
+</body>
+</html>
