@@ -246,6 +246,10 @@
                     <div onclick="switchPage('skill-matches', this)" class="sidebar-link flex items-center px-4 py-3 cursor-pointer text-sm text-gray-600 dark:text-gray-300">
                         <i class="fas fa-handshake w-6 text-center mr-3 text-lg"></i> Skill Matches
                     </div>
+                    <div onclick="switchPage('bond-requests', this)" class="sidebar-link flex items-center px-4 py-3 cursor-pointer text-sm text-gray-600 dark:text-gray-300">
+                        <i class="fas fa-bell w-6 text-center mr-3 text-lg"></i> Bond Requests
+                        <span class="ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full hidden shadow-red-500/50" id="bond-req-badge"></span>
+                    </div>
 
                 </nav>
             </div>
@@ -499,6 +503,158 @@
 
                 <div id="skill-matches-container" class="space-y-6">
                   <p class="text-center text-gray-400 py-10 animate-pulse">Loading skill matches...</p>
+                </div>
+              </div>
+            </div>
+
+            <div id="bond-requests" class="page-section overflow-y-auto h-full p-6 md:p-8">
+              <div class="max-w-7xl mx-auto">
+                <div class="mb-8 border-b border-gray-200/50 dark:border-gray-700/50 pb-4">
+                  <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Bond Requests</h1>
+                  <p class="text-gray-500 dark:text-gray-400 mt-1">Manage incoming and outgoing bond requests.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <i class="fas fa-inbox text-brand"></i>Incoming Requests
+                    </h2>
+                    <div id="incoming-requests" class="space-y-3">
+                      <p class="text-center text-gray-400 py-10 animate-pulse">Loading incoming requests...</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <i class="fas fa-paper-plane text-brand"></i>Outgoing Requests
+                    </h2>
+                    <div id="outgoing-requests" class="space-y-3">
+                      <p class="text-center text-gray-400 py-10 animate-pulse">Loading outgoing requests...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="bond-history" class="page-section overflow-y-auto h-full p-6 md:p-8">
+              <div class="max-w-7xl mx-auto">
+                <div class="mb-8 border-b border-gray-200/50 dark:border-gray-700/50 pb-4">
+                  <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Bond History</h1>
+                  <p class="text-gray-500 dark:text-gray-400 mt-1">Track all your active and completed skill exchanges.</p>
+                </div>
+
+                <div id="bond-history-container" class="space-y-4">
+                  <p class="text-center text-gray-400 py-10 animate-pulse">Loading bond history...</p>
+                </div>
+              </div>
+            </div>
+
+            <div id="shared-bond" class="page-section overflow-y-auto h-full p-6 md:p-8 hidden">
+              <div class="max-w-7xl mx-auto">
+                <div class="mb-8 flex justify-between items-center">
+                  <div class="border-b border-gray-200/50 dark:border-gray-700/50 pb-4 flex-1">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight" id="bond-title">Skill Exchange</h1>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1" id="bond-subtitle">Active skill exchange session</p>
+                  </div>
+                  <button onclick="closeBondInterface()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition text-2xl">✕</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                  <!-- User Info -->
+                  <div class="lg:col-span-1">
+                    <div class="glass-card bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl">
+                      <h3 class="font-bold text-lg mb-4 text-gray-900 dark:text-white">Your Bond Partner</h3>
+                      <div class="flex items-center gap-4 mb-6">
+                        <div id="bond-partner-avatar" class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center font-bold text-xl">P</div>
+                        <div>
+                          <p id="bond-partner-name" class="font-bold text-gray-900 dark:text-white">Partner Name</p>
+                          <p id="bond-partner-role" class="text-xs text-gray-400">Role</p>
+                        </div>
+                      </div>
+
+                      <div class="space-y-3 mb-6">
+                        <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
+                          <p class="text-xs font-bold text-green-700 dark:text-green-300 mb-1">Teaching You:</p>
+                          <p id="bond-skill-offered" class="text-sm font-semibold text-green-900 dark:text-green-100">Skill</p>
+                        </div>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p class="text-xs font-bold text-blue-700 dark:text-blue-300 mb-1">You're Learning:</p>
+                          <p id="bond-skill-learned" class="text-sm font-semibold text-blue-900 dark:text-blue-100">Skill</p>
+                        </div>
+                      </div>
+
+                      <div class="flex gap-2">
+                        <button onclick="openBondChat()" class="flex-1 bg-brand text-white px-3 py-2 rounded-lg font-semibold hover:bg-brandDark transition text-sm">
+                          <i class="fas fa-message mr-2"></i>Message
+                        </button>
+                        <button id="bond-break-btn" onclick="breakBondFromInterface()" class="flex-1 bg-red-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-red-600 transition text-sm">
+                          <i class="fas fa-ban mr-2"></i>End Bond
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Progress & Assessment -->
+                  <div class="lg:col-span-2 space-y-6">
+                    <!-- Progress Tracker -->
+                    <div class="glass-card bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl">
+                      <h3 class="font-bold text-lg mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-chart-line text-brand"></i> Progress
+                      </h3>
+                      <div class="space-y-4">
+                        <div>
+                          <div class="flex justify-between items-center mb-2">
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Bond Duration</p>
+                            <p id="bond-duration" class="text-xs text-gray-500">0 days active</p>
+                          </div>
+                          <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div id="bond-progress-bar" class="h-full bg-gradient-to-r from-brand to-purple-500 rounded-full" style="width: 35%"></div>
+                          </div>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Active skill exchange sessions: <span id="bond-session-count" class="font-bold">0</span></p>
+                      </div>
+                    </div>
+
+                    <!-- Assessment Section -->
+                    <div id="assessment-section" class="glass-card bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl">
+                      <h3 class="font-bold text-lg mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-clipboard-check text-orange-500"></i> Assessment
+                      </h3>
+                      <div id="assessment-content">
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Tutor assessment of learner's progress will appear here.</p>
+                        <button id="submit-assessment-btn" onclick="showAssessmentForm()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold transition text-sm">
+                          <i class="fas fa-plus mr-2"></i>Add Assessment
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Feedback Section -->
+                    <div id="feedback-section" class="glass-card bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl">
+                      <h3 class="font-bold text-lg mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-star text-yellow-500"></i> Feedback
+                      </h3>
+                      <div id="feedback-content">
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Feedback and ratings will appear here once the bond is completed.</p>
+                        <button id="submit-feedback-btn" onclick="showFeedbackForm()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold transition text-sm">
+                          <i class="fas fa-pencil mr-2"></i>Add Feedback
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bond Status -->
+                <div id="bond-status-card" class="glass-card bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl mb-6">
+                  <h3 class="font-bold text-lg mb-4 text-gray-900 dark:text-white">Bond Status</h3>
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p id="bond-status-text" class="text-2xl font-bold text-green-600 dark:text-green-400">🟢 Active</p>
+                      <p id="bond-created-date" class="text-sm text-gray-500 dark:text-gray-400 mt-1">Created on --</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold mb-2">Bond ID</p>
+                      <p id="bond-id" class="text-sm font-mono text-gray-600 dark:text-gray-300 break-all">---</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1327,6 +1483,8 @@ function loadHackRooms() {
   if (pageId === "seniors") loadSeniorProfiles();
   if (pageId === "hackrooms") loadHackRooms();
   if (pageId === "skill-matches") loadSkillMatches();
+  if (pageId === "bond-requests") loadBondRequests();
+  if (pageId === "bond-history") loadBondHistory();
 
   const titles = {
     explore: 'Explore Feed',
@@ -1336,6 +1494,8 @@ function loadHackRooms() {
     seniors: 'Community',
     hackrooms: 'HackRooms',
     'skill-matches': 'Skill Matches',
+    'bond-requests': 'Bond Requests',
+    'bond-history': 'Bond History',
     chat: 'Messages'
   };
 
@@ -2020,7 +2180,492 @@ function loadHackRooms() {
 
           renderSkillMatches(filtered);
         }
-      
+
+        // Load and display bond requests
+        function loadBondRequests() {
+          const currentUser = localStorage.getItem('sx_user');
+          if (!currentUser || currentUser === 'Guest') {
+            document.getElementById('incoming-requests').innerHTML = '<p class="text-center text-gray-400 py-10">Please log in to view bond requests.</p>';
+            document.getElementById('outgoing-requests').innerHTML = '<p class="text-center text-gray-400 py-10">Please log in to view bond requests.</p>';
+            return;
+          }
+
+          // Load incoming requests (requests sent to current user)
+          const incomingContainer = document.getElementById('incoming-requests');
+          incomingContainer.innerHTML = '<p class="text-center text-gray-400 py-10 animate-pulse">Loading incoming requests...</p>';
+
+          db.collection('bond_requests')
+            .where('tutorId', '==', currentUser)
+            .where('status', '==', 'pending')
+            .orderBy('sentAt', 'desc')
+            .onSnapshot(snapshot => {
+              if (snapshot.empty) {
+                incomingContainer.innerHTML = '<p class="text-center text-gray-400 py-10">No incoming bond requests.</p>';
+              } else {
+                incomingContainer.innerHTML = snapshot.docs.map(doc => {
+                  const req = doc.data();
+                  return `
+                    <div class="glass-card bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl border-l-4 border-yellow-500">
+                      <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-bold shadow-md text-lg">
+                            ${req.learnerId.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 class="font-bold text-gray-800 dark:text-white">${req.learnerId}</h3>
+                            <p class="text-xs text-gray-400">Wants to learn from you</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="bg-gray-50/50 dark:bg-gray-700/30 rounded-xl p-4 mb-4 space-y-2 border border-gray-100 dark:border-gray-600/30">
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm font-bold text-gray-600 dark:text-gray-400">Can teach you:</span>
+                          <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-sm font-medium">${req.skillOffered}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm font-bold text-gray-600 dark:text-gray-400">Wants to learn:</span>
+                          <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-sm font-medium">${req.skillLearned}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-3">${req.sentAt ? req.sentAt.toDate().toLocaleDateString() : 'Recently'}</p>
+                      </div>
+
+                      <div class="flex gap-3">
+                        <button onclick="acceptBondRequest('${doc.id}')" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition">
+                          <i class="fas fa-check mr-2"></i>Accept
+                        </button>
+                        <button onclick="rejectBondRequest('${doc.id}')" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition">
+                          <i class="fas fa-times mr-2"></i>Reject
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('');
+              }
+            });
+
+          // Load outgoing requests (requests sent by current user)
+          const outgoingContainer = document.getElementById('outgoing-requests');
+          outgoingContainer.innerHTML = '<p class="text-center text-gray-400 py-10 animate-pulse">Loading outgoing requests...</p>';
+
+          db.collection('bond_requests')
+            .where('learnerId', '==', currentUser)
+            .where('status', '==', 'pending')
+            .orderBy('sentAt', 'desc')
+            .onSnapshot(snapshot => {
+              if (snapshot.empty) {
+                outgoingContainer.innerHTML = '<p class="text-center text-gray-400 py-10">No outgoing bond requests.</p>';
+              } else {
+                outgoingContainer.innerHTML = snapshot.docs.map(doc => {
+                  const req = doc.data();
+                  return `
+                    <div class="glass-card bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl border-l-4 border-blue-500">
+                      <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center font-bold shadow-md text-lg">
+                            ${req.tutorId.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 class="font-bold text-gray-800 dark:text-white">${req.tutorId}</h3>
+                            <p class="text-xs text-gray-400">Request awaiting response</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="bg-gray-50/50 dark:bg-gray-700/30 rounded-xl p-4 mb-4 space-y-2 border border-gray-100 dark:border-gray-600/30">
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm font-bold text-gray-600 dark:text-gray-400">They can teach:</span>
+                          <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-sm font-medium">${req.skillOffered}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm font-bold text-gray-600 dark:text-gray-400">You want:</span>
+                          <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-sm font-medium">${req.skillLearned}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-3">${req.sentAt ? req.sentAt.toDate().toLocaleDateString() : 'Recently'}</p>
+                      </div>
+
+                      <div class="flex gap-3">
+                        <button onclick="cancelBondRequest('${doc.id}')" class="w-full bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition">
+                          <i class="fas fa-ban mr-2"></i>Cancel Request
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('');
+              }
+            });
+        }
+
+        // Cancel a bond request (by sender)
+        async function cancelBondRequest(requestId) {
+          const currentUser = localStorage.getItem('sx_user');
+          
+          try {
+            const reqDoc = await db.collection('bond_requests').doc(requestId).get();
+            if (!reqDoc.exists) {
+              alert('Request not found');
+              return;
+            }
+
+            const request = reqDoc.data();
+            
+            // Verify current user is the sender (learner)
+            if (request.learnerId !== currentUser) {
+              alert('You can only cancel requests you sent');
+              return;
+            }
+
+            // Delete the request
+            await db.collection('bond_requests').doc(requestId).delete();
+            alert('Bond request cancelled.');
+            loadBondRequests();
+
+          } catch (error) {
+            console.error('Error cancelling bond request:', error);
+            alert('Failed to cancel request. Please try again.');
+          }
+        }
+
+        // Load and display bond history (all active and completed bonds)
+        function loadBondHistory() {
+          const currentUser = localStorage.getItem('sx_user');
+          if (!currentUser || currentUser === 'Guest') {
+            document.getElementById('bond-history-container').innerHTML = '<p class="text-center text-gray-400 py-10">Please log in to view bond history.</p>';
+            return;
+          }
+
+          const container = document.getElementById('bond-history-container');
+          container.innerHTML = '<p class="text-center text-gray-400 py-10 animate-pulse">Loading bond history...</p>';
+
+          // Get all bonds where user is tutor or learner
+          db.collection('bonds')
+            .where('tutorId', 'in', [currentUser])
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(snapshot => {
+              let bonds = [];
+              snapshot.forEach(doc => {
+                bonds.push({ id: doc.id, ...doc.data() });
+              });
+
+              // Also get bonds where user is learner
+              db.collection('bonds')
+                .where('learnerId', '==', currentUser)
+                .orderBy('createdAt', 'desc')
+                .get()
+                .then(learnSnapshot => {
+                  learnSnapshot.forEach(doc => {
+                    const bond = { id: doc.id, ...doc.data() };
+                    // Avoid duplicates
+                    if (!bonds.find(b => b.id === bond.id)) {
+                      bonds.push(bond);
+                    }
+                  });
+
+                  // Sort by creation date
+                  bonds.sort((a, b) => {
+                    const aTime = a.createdAt ? a.createdAt.toDate() : new Date(0);
+                    const bTime = b.createdAt ? b.createdAt.toDate() : new Date(0);
+                    return bTime - aTime;
+                  });
+
+                  if (bonds.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-400 py-10">No bond history yet. Create a bond to get started!</p>';
+                    return;
+                  }
+
+                  container.innerHTML = bonds.map(bond => {
+                    const isUserTutor = bond.tutorId === currentUser;
+                    const otherUser = isUserTutor ? bond.learnerId : bond.tutorId;
+                    const userRole = isUserTutor ? 'Tutor' : 'Learner';
+                    const statusColor = bond.status === 'active' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+                    const createdDate = bond.createdAt ? bond.createdAt.toDate().toLocaleDateString() : 'Recently';
+
+                    return `
+                      <div class="glass-card bg-white/60 dark:bg-gray-800/60 p-6 rounded-2xl border-l-4 border-purple-500">
+                        <div class="flex items-start justify-between mb-4">
+                          <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center font-bold shadow-md text-lg">
+                              ${otherUser.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <h3 class="font-bold text-gray-800 dark:text-white">${otherUser}</h3>
+                              <p class="text-xs text-gray-400">You are the ${userRole}</p>
+                            </div>
+                          </div>
+                          <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusColor}">
+                            ${bond.status === 'active' ? '🟢 Active' : '✓ Completed'}
+                          </span>
+                        </div>
+
+                        <div class="bg-gray-50/50 dark:bg-gray-700/30 rounded-xl p-4 mb-4 space-y-2 border border-gray-100 dark:border-gray-600/30">
+                          <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-gray-600 dark:text-gray-400">Teaching:</span>
+                            <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-sm font-medium">${bond.skillOffered}</span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-gray-600 dark:text-gray-400">Learning:</span>
+                            <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-sm font-medium">${bond.skillLearned}</span>
+                          </div>
+                          <p class="text-xs text-gray-400 mt-3">Started on ${createdDate}</p>
+                        </div>
+
+                        ${bond.assessmentScore ? `
+                          <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 mb-4 border border-blue-100 dark:border-blue-800">
+                            <p class="text-xs font-bold text-blue-700 dark:text-blue-300 mb-1">Assessment Score: ${bond.assessmentScore}/100</p>
+                            <p class="text-xs text-blue-600 dark:text-blue-400">Assessed by ${bond.assessmentSubmittedBy || 'Tutor'}</p>
+                          </div>
+                        ` : ''}
+
+                        ${bond.feedback ? `
+                          <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3 mb-4 border border-purple-100 dark:border-purple-800">
+                            <p class="text-xs font-bold text-purple-700 dark:text-purple-300 mb-2">Feedback:</p>
+                            <p class="text-xs text-purple-600 dark:text-purple-400">${bond.feedback}</p>
+                          </div>
+                        ` : ''}
+
+                        <div class="flex gap-3">
+                          <button onclick="viewBondDetails('${bond.id}')" class="flex-1 bg-brand text-white px-4 py-2 rounded-lg font-semibold hover:bg-brandDark transition">
+                            <i class="fas fa-eye mr-2"></i>View Details
+                          </button>
+                          ${bond.status === 'active' && isUserTutor ? `
+                            <button onclick="createAssessment('${bond.id}')" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold transition">
+                              <i class="fas fa-clipboard-check mr-2"></i>Assess
+                            </button>
+                          ` : ''}
+                          ${bond.status === 'active' ? `
+                            <button onclick="breakBond('${bond.id}')" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition">
+                              <i class="fas fa-link-slash mr-2"></i>End Bond
+                            </button>
+                          ` : ''}
+                        </div>
+                      </div>
+                    `;
+                  }).join('');
+                });
+            });
+        }
+
+        // Placeholder functions for bond actions
+        function viewBondDetails(bondId) {
+          alert('Bond details view coming soon for bond: ' + bondId);
+        }
+
+        function createAssessment(bondId) {
+          alert('Assessment creation coming soon for bond: ' + bondId);
+        }
+
+        function breakBond(bondId) {
+          const reason = prompt('Why are you ending this bond?');
+          if (!reason) return;
+          
+          db.collection('bonds').doc(bondId).update({
+            status: 'broken',
+            bondBreakReason: reason,
+            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).then(() => {
+            alert('Bond ended successfully.');
+            loadBondHistory();
+          }).catch(err => {
+            console.error('Error breaking bond:', err);
+            alert('Failed to end bond. Please try again.');
+          });
+        }
+
+        // Update notification badge with pending request count
+        function updateBondRequestBadge() {
+          const currentUser = localStorage.getItem('sx_user');
+          const badge = document.getElementById('bond-req-badge');
+          
+          if (!currentUser || currentUser === 'Guest' || !badge) {
+            if (badge) badge.classList.add('hidden');
+            return;
+          }
+
+          db.collection('bond_requests')
+            .where('tutorId', '==', currentUser)
+            .where('status', '==', 'pending')
+            .onSnapshot(snapshot => {
+              const count = snapshot.size;
+              
+              if (count > 0) {
+                badge.textContent = count;
+                badge.classList.remove('hidden');
+              } else {
+                badge.classList.add('hidden');
+              }
+            });
+        }
+
+        // Call badge update on auth state change
+        auth.onAuthStateChanged(() => {
+          setTimeout(() => updateBondRequestBadge(), 1000);
+        });
+
+        // Shared Bond Interface Functions
+        let currentBondId = null;
+        let currentBondData = null;
+
+        function viewBondDetails(bondId) {
+          const currentUser = localStorage.getItem('sx_user');
+          
+          db.collection('bonds').doc(bondId).get().then(doc => {
+            if (!doc.exists) {
+              alert('Bond not found');
+              return;
+            }
+
+            const bond = { id: doc.id, ...doc.data() };
+            currentBondId = bondId;
+            currentBondData = bond;
+
+            const isUserTutor = bond.tutorId === currentUser;
+            const partnerName = isUserTutor ? bond.learnerId : bond.tutorId;
+            const partnerRole = isUserTutor ? 'Learner' : 'Tutor';
+
+            // Update UI elements
+            document.getElementById('bond-title').textContent = `${bond.skillOffered} ↔ ${bond.skillLearned}`;
+            document.getElementById('bond-subtitle').textContent = `Skill exchange with ${partnerName}`;
+            document.getElementById('bond-partner-name').textContent = partnerName;
+            document.getElementById('bond-partner-role').textContent = partnerRole;
+            document.getElementById('bond-partner-avatar').textContent = partnerName.charAt(0).toUpperCase();
+            document.getElementById('bond-skill-offered').textContent = bond.skillOffered;
+            document.getElementById('bond-skill-learned').textContent = bond.skillLearned;
+            document.getElementById('bond-id').textContent = bondId;
+            document.getElementById('bond-created-date').textContent = `Created on ${bond.createdAt ? bond.createdAt.toDate().toLocaleDateString() : 'Recently'}`;
+
+            // Calculate duration
+            const now = new Date();
+            const created = bond.createdAt ? bond.createdAt.toDate() : new Date();
+            const daysActive = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+            document.getElementById('bond-duration').textContent = `${daysActive} days active`;
+
+            // Show assessment section only if tutor
+            const assessmentSection = document.getElementById('assessment-section');
+            const submitAssessmentBtn = document.getElementById('submit-assessment-btn');
+            if (isUserTutor && bond.status === 'active') {
+              assessmentSection.classList.remove('hidden');
+              if (bond.assessmentScore) {
+                submitAssessmentBtn.innerHTML = `<i class="fas fa-pencil mr-2"></i>Update Assessment`;
+              } else {
+                submitAssessmentBtn.innerHTML = `<i class="fas fa-plus mr-2"></i>Add Assessment`;
+              }
+            } else {
+              assessmentSection.classList.add('hidden');
+            }
+
+            // Show feedback section only after bond is completed
+            const feedbackSection = document.getElementById('feedback-section');
+            if (bond.status !== 'active') {
+              feedbackSection.classList.remove('hidden');
+            } else {
+              feedbackSection.classList.add('hidden');
+            }
+
+            // Show break button only if bond is active
+            const breakBtn = document.getElementById('bond-break-btn');
+            if (bond.status === 'active') {
+              breakBtn.classList.remove('hidden');
+            } else {
+              breakBtn.classList.add('hidden');
+            }
+
+            // Switch to shared-bond page
+            switchPage('shared-bond', null);
+            
+          }).catch(err => {
+            console.error('Error loading bond details:', err);
+            alert('Failed to load bond details.');
+          });
+        }
+
+        function closeBondInterface() {
+          document.getElementById('shared-bond').classList.add('hidden');
+          switchPage('bond-history', null);
+        }
+
+        function openBondChat() {
+          const partnerName = document.getElementById('bond-partner-name').textContent;
+          openDM(partnerName);
+        }
+
+        function breakBondFromInterface() {
+          if (!currentBondId) return;
+          
+          const reason = prompt('Why are you ending this bond?');
+          if (!reason) return;
+          
+          db.collection('bonds').doc(currentBondId).update({
+            status: 'broken',
+            bondBreakReason: reason,
+            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).then(() => {
+            alert('Bond ended successfully.');
+            closeBondInterface();
+            loadBondHistory();
+          }).catch(err => {
+            console.error('Error breaking bond:', err);
+            alert('Failed to end bond. Please try again.');
+          });
+        }
+
+        function showAssessmentForm() {
+          if (!currentBondId) return;
+
+          const score = prompt('Enter assessment score (0-100):', '80');
+          if (!score) return;
+
+          const numScore = parseInt(score);
+          if (isNaN(numScore) || numScore < 0 || numScore > 100) {
+            alert('Please enter a valid score between 0 and 100');
+            return;
+          }
+
+          const comment = prompt('Add assessment comment (optional):', '');
+
+          db.collection('bonds').doc(currentBondId).update({
+            assessmentScore: numScore,
+            assessmentSubmittedBy: localStorage.getItem('sx_user'),
+            assessmentSubmittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            assessmentComment: comment || ''
+          }).then(() => {
+            alert('Assessment submitted successfully!');
+            viewBondDetails(currentBondId);
+          }).catch(err => {
+            console.error('Error submitting assessment:', err);
+            alert('Failed to submit assessment.');
+          });
+        }
+
+        function showFeedbackForm() {
+          if (!currentBondId) return;
+
+          const rating = prompt('Rate this bond exchange (1-5 stars):', '5');
+          if (!rating) return;
+
+          const numRating = parseInt(rating);
+          if (isNaN(numRating) || numRating < 1 || numRating > 5) {
+            alert('Please enter a rating between 1 and 5');
+            return;
+          }
+
+          const comment = prompt('Share your feedback (optional):', '');
+
+          db.collection('bonds').doc(currentBondId).update({
+            feedback: {
+              rating: numRating,
+              comment: comment || '',
+              submittedBy: localStorage.getItem('sx_user'),
+              submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              isVisible: true
+            }
+          }).then(() => {
+            alert('Feedback submitted successfully!');
+            viewBondDetails(currentBondId);
+          }).catch(err => {
+            console.error('Error submitting feedback:', err);
+            alert('Failed to submit feedback.');
+          });
+        }
 
         function openUserProfile(userId) {
           window.location.href = `profile.html?uid=${userId}`;
@@ -2383,50 +3028,60 @@ function loadHackRooms() {
             return;
           }
 
-          // Check if active bond already exists
-          const existingBond = await checkExistingBond(postId, tutorId, currentUser);
-          if (existingBond) {
-            alert('You already have an active bond with this user');
+          // Check if request or active bond already exists
+          const existingRequest = await checkExistingBondRequest(tutorId, currentUser);
+          if (existingRequest) {
+            alert('A bond request already exists between you two');
             return;
           }
 
-          // Show bond creation confirmation modal
-          showBondConfirmModal(postId, tutorId);
+          // Show bond request confirmation modal
+          showBondRequestModal(postId, tutorId);
         }
 
-        // Check if active bond exists between users
-        async function checkExistingBond(postId, tutorId, learnerId) {
+        // Check if bond request or bond already exists
+        async function checkExistingBondRequest(tutorId, learnerId) {
           try {
-            const snapshot = await db.collection('bonds')
-              .where('postId', '==', postId)
+            const bondReq = await db.collection('bond_requests')
+              .where('tutorId', '==', tutorId)
+              .where('learnerId', '==', learnerId)
+              .where('status', '==', 'pending')
+              .get();
+
+            if (!bondReq.empty) return true;
+
+            // Also check for active bond
+            const activeBond = await db.collection('bonds')
+              .where('tutorId', '==', tutorId)
+              .where('learnerId', '==', learnerId)
               .where('status', '==', 'active')
               .get();
 
-            return !snapshot.empty;
+            return !activeBond.empty;
           } catch (error) {
-            console.error('Error checking bond:', error);
+            console.error('Error checking bond request:', error);
             return false;
           }
         }
 
-        // Show bond creation confirmation modal
-        function showBondConfirmModal(postId, tutorId) {
+        // Show bond request confirmation modal
+        function showBondRequestModal(postId, tutorId) {
           const currentUser = localStorage.getItem('sx_user');
           const modal = document.createElement('div');
           modal.className = 'fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4';
           modal.innerHTML = `
             <div class="glass-panel bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md border border-white/20 p-6">
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                <i class="fas fa-handshake text-brand mr-2"></i>Create Skill Exchange Bond
+                <i class="fas fa-handshake text-brand mr-2"></i>Send Bond Request
               </h2>
               <p class="text-gray-600 dark:text-gray-300 mb-6">
-                Once you create a bond, both users will be restricted to this exchange until it's completed or mutually discontinued. This ensures focused skill learning.
+                A bond request will be sent to <strong>${tutorId}</strong>. They can accept or reject your request. Once accepted, you can start your skill exchange.
               </p>
               
               <div class="bg-brandLight/20 dark:bg-brand/10 border border-brand/30 rounded-lg p-4 mb-6">
                 <p class="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Tutor:</strong> ${tutorId}<br>
-                  <strong>Learner:</strong> ${currentUser}
+                  <strong>To:</strong> ${tutorId}<br>
+                  <strong>From:</strong> ${currentUser}
                 </p>
               </div>
 
@@ -2435,9 +3090,9 @@ function loadHackRooms() {
                         class="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                   Cancel
                 </button>
-                <button onclick="createBond('${postId}', '${tutorId}'); this.closest('.fixed').remove()" 
+                <button onclick="sendBondRequest('${postId}', '${tutorId}'); this.closest('.fixed').remove()" 
                         class="flex-1 px-4 py-3 rounded-lg bg-brand text-white font-semibold hover:bg-brandDark transition">
-                  Create Bond
+                  Send Request
                 </button>
               </div>
             </div>
@@ -2445,8 +3100,8 @@ function loadHackRooms() {
           document.body.appendChild(modal);
         }
 
-        // Create a new bond in Firestore
-        async function createBond(postId, tutorId) {
+        // Send a bond request (not creating bond yet)
+        async function sendBondRequest(postId, tutorId) {
           const currentUser = localStorage.getItem('sx_user');
           
           try {
@@ -2461,15 +3116,56 @@ function loadHackRooms() {
             const skillOffered = (postData.skillsToOffer && postData.skillsToOffer[0]) || 'Skill Exchange';
             const skillLearned = (postData.skillsToLearn && postData.skillsToLearn[0]) || 'Unknown Skill';
 
-            // Create bond document
-            const bondRef = await db.collection('bonds').add({
+            // Create bond request (NOT a full bond yet)
+            await db.collection('bond_requests').add({
               postId: postId,
               tutorId: tutorId,
               learnerId: currentUser,
               skillOffered: skillOffered,
               skillLearned: skillLearned,
+              status: 'pending', // pending, accepted, rejected
+              sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+              respondedAt: null,
+              response: null
+            });
+
+            alert('Bond request sent! Waiting for response...');
+
+          } catch (error) {
+            console.error('Error sending bond request:', error);
+            alert('Failed to send request. Please try again.');
+          }
+        }
+
+        // Accept a bond request
+        async function acceptBondRequest(requestId) {
+          const currentUser = localStorage.getItem('sx_user');
+          
+          try {
+            const reqDoc = await db.collection('bond_requests').doc(requestId).get();
+            if (!reqDoc.exists) {
+              alert('Request not found');
+              return;
+            }
+
+            const request = reqDoc.data();
+            
+            // Verify current user is the recipient (tutor)
+            if (request.tutorId !== currentUser) {
+              alert('You can only respond to requests sent to you');
+              return;
+            }
+
+            // Now create the actual bond
+            const bondRef = await db.collection('bonds').add({
+              postId: request.postId,
+              tutorId: request.tutorId,
+              learnerId: request.learnerId,
+              skillOffered: request.skillOffered,
+              skillLearned: request.skillLearned,
               status: 'active',
               createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              requestId: requestId,
               completedAt: null,
               assessmentScore: null,
               assessmentSubmittedBy: null,
@@ -2478,13 +3174,63 @@ function loadHackRooms() {
               bondBreakReason: null
             });
 
-            alert('Bond created successfully! Start your skill exchange journey.');
+            // Update request status
+            await db.collection('bond_requests').doc(requestId).update({
+              status: 'accepted',
+              respondedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              response: 'accepted',
+              bondId: bondRef.id
+            });
+
+            alert('Bond request accepted! Starting skill exchange...');
             location.reload();
 
           } catch (error) {
-            console.error('Error creating bond:', error);
-            alert('Failed to create bond. Please try again.');
+            console.error('Error accepting bond request:', error);
+            alert('Failed to accept request. Please try again.');
           }
+        }
+
+        // Reject a bond request
+        async function rejectBondRequest(requestId) {
+          const currentUser = localStorage.getItem('sx_user');
+          
+          try {
+            const reqDoc = await db.collection('bond_requests').doc(requestId).get();
+            if (!reqDoc.exists) {
+              alert('Request not found');
+              return;
+            }
+
+            const request = reqDoc.data();
+            
+            // Verify current user is the recipient (tutor)
+            if (request.tutorId !== currentUser) {
+              alert('You can only respond to requests sent to you');
+              return;
+            }
+
+            // Update request status to rejected
+            await db.collection('bond_requests').doc(requestId).update({
+              status: 'rejected',
+              respondedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              response: 'rejected'
+            });
+
+            alert('Bond request rejected');
+            location.reload();
+
+          } catch (error) {
+            console.error('Error rejecting bond request:', error);
+            alert('Failed to reject request. Please try again.');
+          }
+        }
+
+        // Create a new bond in Firestore (kept for backwards compatibility)
+        async function createBond(postId, tutorId) {
+          // This function is now replaced by the request-response flow
+          // But keeping for backwards compatibility
+          await sendBondRequest(postId, tutorId);
         }
 
         // Submit assessment (tutor only)
